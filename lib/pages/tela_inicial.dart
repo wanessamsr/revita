@@ -108,7 +108,7 @@ class _MyHomePageState extends State<MyHomePage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.blue[800],
+        backgroundColor: const Color(0xFF0E37BB),
         elevation: 0,
       ),
       body: Column(
@@ -123,7 +123,7 @@ class _MyHomePageState extends State<MyHomePage> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
-                color: Colors.blueAccent,
+                color: Color(0xFF0E37BB),
               ),
             ),
           ),
@@ -157,7 +157,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       bottomNavigationBar: BottomAppBar(
         child: Container(
-          color: Colors.blue[800],
+          color: const Color(0xFF0E37BB),
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -201,7 +201,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.blue[800], size: 48),
+            Icon(icon, color: const Color(0xFF0E37BB), size: 48),
             const SizedBox(height: 12),
             Text(
               title,

@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart'; // Necessário para usar kIsWeb
+import 'package:flutter/foundation.dart'; // Para detectar ambiente (web/mobile)
 import 'package:flutter/material.dart';
 import 'package:revitalize_mobile/forms/form_edit_paciente.dart';
 import 'package:revitalize_mobile/forms/form_paciente.dart';
@@ -32,27 +32,20 @@ class _PacientePageState extends State<PacientePage> {
   }
 
   void _addPaciente() {
-    if (kIsWeb) {
-      Navigator.of(context)
-          .push(
-              MaterialPageRoute(builder: (context) => const FormPacientePage()))
-          .then((_) => setState(() {
-                _pacientesFuture = _fetchPacientes();
-              }));
-    }
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => const FormPacientePage()))
+        .then((_) => setState(() {
+              _pacientesFuture = _fetchPacientes();
+            }));
   }
 
   void _editPaciente(Paciente paciente) {
-    if (kIsWeb) {
-      Navigator.of(context)
-          .push(
-            MaterialPageRoute(
-                builder: (context) => EditarPacientePage(paciente: paciente)),
-          )
-          .then((_) => setState(() {
-                _pacientesFuture = _fetchPacientes();
-              }));
-    }
+    Navigator.of(context)
+        .push(MaterialPageRoute(
+            builder: (context) => EditarPacientePage(paciente: paciente)))
+        .then((_) => setState(() {
+              _pacientesFuture = _fetchPacientes();
+            }));
   }
 
   @override
@@ -65,14 +58,12 @@ class _PacientePageState extends State<PacientePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(title: "Pacientes"),
-      floatingActionButton: kIsWeb
-          ? FloatingActionButton(
-              onPressed: _addPaciente,
-              backgroundColor: Colors.blue[800],
-              child: const Icon(Icons.add, color: Colors.white),
-              tooltip: "Adicionar Paciente",
-            )
-          : null,
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addPaciente,
+        backgroundColor: Colors.blue[800],
+        child: const Icon(Icons.add, color: Colors.white),
+        tooltip: "Adicionar Paciente",
+      ),
       body: FutureBuilder<List<Paciente>>(
         future: _pacientesFuture,
         builder: (context, snapshot) {
@@ -94,14 +85,12 @@ class _PacientePageState extends State<PacientePage> {
             );
           } else {
             List<Paciente> pacientes = snapshot.data!;
-            return Padding(
+            return ListView.builder(
               padding: const EdgeInsets.all(16.0),
-              child: ListView.builder(
-                itemCount: pacientes.length,
-                itemBuilder: (context, index) {
-                  return _buildPacienteCard(pacientes[index]);
-                },
-              ),
+              itemCount: pacientes.length,
+              itemBuilder: (context, index) {
+                return _buildPacienteCard(pacientes[index]);
+              },
             );
           }
         },
@@ -134,7 +123,7 @@ class _PacientePageState extends State<PacientePage> {
             _buildPacienteInfoRow("Cidade", paciente.cidade),
             _buildPacienteInfoRow("Data de Nascimento", paciente.dataNascimento),
             if (kIsWeb) ...[
-              const SizedBox(height: 12),
+              const Divider(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -143,6 +132,7 @@ class _PacientePageState extends State<PacientePage> {
                     icon: const Icon(Icons.edit, color: Colors.blue),
                     label: const Text("Editar"),
                   ),
+                  const SizedBox(width: 8),
                   TextButton.icon(
                     onPressed: () => _deletePaciente(paciente.id),
                     icon: const Icon(Icons.delete, color: Colors.red),
