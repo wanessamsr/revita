@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart'; // Para detectar ambiente (web/mobile)
 import 'package:flutter/material.dart';
 import 'package:revitalize_mobile/forms/form_edit_paciente.dart';
 import 'package:revitalize_mobile/forms/form_paciente.dart';
@@ -41,8 +40,11 @@ class _PacientePageState extends State<PacientePage> {
 
   void _editPaciente(Paciente paciente) {
     Navigator.of(context)
-        .push(MaterialPageRoute(
-            builder: (context) => EditarPacientePage(paciente: paciente)))
+        .push(
+          MaterialPageRoute(
+            builder: (context) => EditarPacientePage(paciente: paciente),
+          ),
+        )
         .then((_) => setState(() {
               _pacientesFuture = _fetchPacientes();
             }));
@@ -85,11 +87,38 @@ class _PacientePageState extends State<PacientePage> {
             );
           } else {
             List<Paciente> pacientes = snapshot.data!;
-            return ListView.builder(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: pacientes.length,
-              itemBuilder: (context, index) {
-                return _buildPacienteCard(pacientes[index]);
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final bool isWeb = constraints.maxWidth >= 600;
+
+                return Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: isWeb
+                      ? GridView.builder(
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 3 / 2,
+                          ),
+                          itemCount: pacientes.length,
+                          itemBuilder: (context, index) {
+                            return _PacienteCardWeb(
+                              paciente: pacientes[index],
+                              onEdit: () => _editPaciente(pacientes[index]),
+                              onDelete: () => _deletePaciente(pacientes[index].id),
+                            );
+                          },
+                        )
+                      : ListView.builder(
+                          itemCount: pacientes.length,
+                          itemBuilder: (context, index) {
+                            return _PacienteCardMobile(
+                              paciente: pacientes[index],
+                            );
+                          },
+                        ),
+                );
               },
             );
           }
@@ -97,75 +126,125 @@ class _PacientePageState extends State<PacientePage> {
       ),
     );
   }
+}
 
-  Widget _buildPacienteCard(Paciente paciente) {
+class _PacienteCardWeb extends StatelessWidget {
+  final Paciente paciente;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _PacienteCardWeb({
+    required this.paciente,
+    required this.onEdit,
+    required this.onDelete,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
     return Card(
       elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Colors.blue[50],
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              paciente.nome,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
+            _PacienteInfo(paciente: paciente),
+            const Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                IconButton(
+                  onPressed: onEdit,
+                  icon: const Icon(Icons.edit, color: Colors.blue),
+                  tooltip: "Editar",
+                ),
+                IconButton(
+                  onPressed: onDelete,
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  tooltip: "Excluir",
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            _buildPacienteInfoRow("Email", paciente.email),
-            _buildPacienteInfoRow("Cidade", paciente.cidade),
-            _buildPacienteInfoRow("Data de Nascimento", paciente.dataNascimento),
-            if (kIsWeb) ...[
-              const Divider(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton.icon(
-                    onPressed: () => _editPaciente(paciente),
-                    icon: const Icon(Icons.edit, color: Colors.blue),
-                    label: const Text("Editar"),
-                  ),
-                  const SizedBox(width: 8),
-                  TextButton.icon(
-                    onPressed: () => _deletePaciente(paciente.id),
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    label: const Text("Excluir"),
-                  ),
-                ],
-              ),
-            ],
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildPacienteInfoRow(String label, String value) {
-    return Row(
+class _PacienteCardMobile extends StatelessWidget {
+  final Paciente paciente;
+
+  const _PacienteCardMobile({
+    required this.paciente,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Colors.blue[50],
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: _PacienteInfo(paciente: paciente),
+      ),
+    );
+  }
+}
+
+class _PacienteInfo extends StatelessWidget {
+  final Paciente paciente;
+
+  const _PacienteInfo({
+    required this.paciente,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "$label: ",
+          paciente.nome,
           style: const TextStyle(
+            fontSize: 18,
             fontWeight: FontWeight.bold,
-            fontSize: 14,
-            color: Colors.black54,
+            color: Colors.black87,
           ),
+          overflow: TextOverflow.ellipsis,
         ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(fontSize: 14, color: Colors.black87),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
+        const SizedBox(height: 8),
+        _buildInfoRow(Icons.email, paciente.email),
+        _buildInfoRow(Icons.location_city, paciente.cidade),
+        _buildInfoRow(Icons.calendar_today, paciente.dataNascimento),
+        _buildInfoRow(Icons.home, paciente.endereco),
+        _buildInfoRow(Icons.map, paciente.cep),
       ],
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: Colors.blueGrey),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 14, color: Colors.black87),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
